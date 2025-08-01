@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolution of SAP Development Environments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The application uses a horizontal, interactive timeline as its core structure. This was chosen because the source report is inherently chronological. The main user flow involves clicking on a node (representing a tool) on the timeline, which dynamically updates a separate "Details" pane below. This structure provides a quick overview of the entire evolution while allowing users to drill down into specific points of interest without leaving the page, making it highly intuitive and efficient for information consumption. -->
+    <!-- Visualization & Content Choices: Report Info: Chronological list of SAP IDEs. -> Goal: Show progression and provide details for each step. -> Viz/Presentation Method: An interactive horizontal timeline created with HTML/CSS and a dynamic text area. -> Interaction: On-click event on each timeline node updates the content in the details area. -> Justification: This approach turns a static list into an engaging, self-paced learning tool. It's more effective than a static chart as it encourages user interaction and controls information flow. -> Library/Method: Vanilla JavaScript for interaction, Tailwind CSS for styling. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 4px;
+            background-color: #d1d5db;
+        }
+        .timeline-item-container {
+            position: relative;
+            z-index: 10;
+        }
+        .timeline-icon {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .timeline-icon.active {
+            transform: scale(1.2);
+            background-color: #0284c7;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.3);
+        }
+        .timeline-icon:hover {
+            transform: scale(1.1);
+            background-color: #0369a1;
+        }
+        @media (max-width: 768px) {
+            .timeline-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .timeline-line {
+                position: absolute;
+                left: 24px;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                height: 100%;
+                transform: translateX(-50%);
+            }
+            .timeline-item {
+                flex-direction: row;
+                align-items: center;
+                width: 100%;
+                padding-left: 50px;
+                margin-bottom: 2rem;
+            }
+            .timeline-label {
+                margin-top: 0;
+                margin-left: 1rem;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8 md:py-16">
+        <header class="text-center mb-12 md:mb-20">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Evolution of SAP Development Environments</h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                This timeline provides an Overview of the key development environments for SAP solutions.
+            </p>
+        </header>
+
+        <main>
+            <div class="w-full max-w-6xl mx-auto mb-12 md:mb-16">
+                <div class="relative">
+                    <div class="timeline-line hidden md:block"></div>
+                    <div id="timeline-container" class="timeline-container flex justify-between items-start">
+                    </div>
+                </div>
+            </div>
+
+            <section id="details-pane" class="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-4xl mx-auto transition-all duration-500">
+                <div id="details-content">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const timelineData = [
+        {
+            id: 'sap-gui',
+            name: 'SAP GUI',
+            icon: '🖥️',
+            description: 'The original, long-standing interface for interacting with SAP systems. SAP GUI (Graphical User Interface) is a thick-client desktop application primarily used by developers for ABAP development, system administration, and by end-users for accessing SAP ERP functionalities.',
+            features: [
+                'SE38: Development of classical ABAP reports',
+                'SE37: Creation and maintenance of Function Modules',
+                'BAPIs, ALE, IDOCs: Standardized interfaces for data exchange and integration',
+                'Still relevant even today for core ABAP development and administration tasks'
+            ]
+        },
+        {
+            id: 'eclipse',
+            name: 'Eclipse (ADT)',
+            icon: '🧩',
+            description: 'Eclipse with ABAP Development Tools (ADT) brought a modern IDE experience to ABAP developers. In 2013, it was also used for early Fiori/UI5 application development, but later discontinued for UI5 while remaining crucial for backend development.',
+            features: [
+                'Introduced for SAP ABAP development in Eclipse environment',
+                '2013: Initially used for Fiori/UI5 application development before SAP Web IDE took over',
+                'Discontinued for Fiori/UI5 development',
+                'Still used for CDS Views and RESTful Application Programming Model (RAP) development'
+            ]
+        },
+        {
+            id: 'web-ide-pe',
+            name: 'SAP Web IDE Personal Edition',
+            icon: '☁️',
+            description: 'A local version of SAP Web IDE, acting as a successor to Eclipse for Fiori/UI5 development. Allowed offline application creation but was later discontinued in favor of the cloud version.',
+            features: [
+                'Successor to Eclipse for Fiori/UI5 application development',
+                'Local, offline IDE for learning and trial purposes',
+                'Focused on Fiori and UI5 development',
+                'Discontinued, replaced by Web IDE Full Stack on cloud'
+            ]
+        },
+        {
+            id: 'web-ide-fs',
+            name: 'SAP Web IDE Full Stack',
+            icon: '🌐',
+            description: 'A comprehensive, browser-based cloud development environment on SAP BTP. Supported Fiori, UI5, Fiori Elements, and CAPM application development. Though widely used, it has been deprecated in favor of BAS.',
+            features: [
+                'Cloud-based full-stack IDE for SAP BTP',
+                'Fiori and UI5 application development with Fiori Elements support',
+                'CAPM project development for cloud solutions',
+                'Marked as deprecated but still used in some projects'
+            ]
+        },
+        {
+            id: 'bas',
+            name: 'SAP Business Application Studio (BAS)',
+            icon: '🛠️',
+            description: 'The latest SAP-supported cloud IDE, replacing Web IDE Full Stack. Built on open standards and providing a VS Code-like experience, optimized for modern SAP development scenarios.',
+            features: [
+                'Current SAP-recommended IDE for business application development',
+                'Supports Fiori, Fiori Elements, and CAPM development',
+                'Cloud-native with Dev Spaces for dedicated project environments',
+                'Built on open-source standards and modern tooling'
+            ]
+        },
+        {
+            id: 'vs-code',
+            name: 'Visual Studio Code',
+            icon: '🔌',
+            description: 'A popular open-source editor for local SAP development. With SAP-provided extensions, it allows developers to build Fiori, CAPM, and RAP applications without relying on the cloud environment.',
+            features: [
+                'Local development of SAP applications without cloud dependency',
+                'Same capabilities as BAS when combined with SAP extensions',
+                'Flexible, lightweight, and integrates well with modern developer workflows',
+                'Preferred by many developers for offline and hybrid SAP projects'
+            ]
+        }
+    ];
+
+        const timelineContainer = document.getElementById('timeline-container');
+        const detailsContent = document.getElementById('details-content');
+
+        function updateDetails(id) {
+            const item = timelineData.find(d => d.id === id);
+            if (!item) return;
+
+            detailsContent.innerHTML = `
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="text-3xl mr-4">${item.icon}</span>
+                    <span>${item.name}</span>
+                </h2>
+                <p class="text-gray-700 mb-6">${item.description}</p>
+                <div>
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">Key Characteristics:</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        ${item.features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+
+            document.querySelectorAll('.timeline-icon').forEach(icon => {
+                icon.classList.remove('active');
+                if (icon.dataset.id === id) {
+                    icon.classList.add('active');
+                }
+            });
+        }
+
+        function createTimeline() {
+            timelineData.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'timeline-item-container flex-1 flex flex-col items-center';
+                itemEl.innerHTML = `
+                    <div class="timeline-item flex flex-col items-center">
+                        <div id="icon-${item.id}" data-id="${item.id}" class="timeline-icon w-12 h-12 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-2xl shadow-md">
+                            ${item.icon}
+                        </div>
+                        <p class="timeline-label mt-4 font-semibold text-center text-sm md:text-base">${item.name}</p>
+                    </div>
+                `;
+                timelineContainer.appendChild(itemEl);
+            });
+
+            document.querySelectorAll('.timeline-icon').forEach(icon => {
+                icon.addEventListener('click', () => {
+                    updateDetails(icon.dataset.id);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createTimeline();
+            updateDetails(timelineData[0].id);
+        });
+    </script>
+</body>
+</html>
